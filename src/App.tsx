@@ -4,25 +4,25 @@ function App() {
   return (
     <div className="App">
       <h1>Campo minato</h1>
-      <Field size={20} />
+      <Field fieldSize={20} tileSize={25} />
     </div>
   )
 }
 
-function Field(props: { size: number }) {
+function Field(props: { fieldSize: number, tileSize: number }) {
   const field = [];
-  for (let y = 0; y < props.size; y++) {
+  for (let y = 0; y < props.fieldSize; y++) {
     const row = [];
-    for (let x = 0; x < props.size; x++) {
-      row.push(<Tile key={x} />);
+    for (let x = 0; x < props.fieldSize; x++) {
+      const isEven = (x + y) % 2 == 0;
+      row.push(<Tile isEven={isEven} key={x} />);
     }
-    field.push(<div className='row'>{row}</div>);
+    field.push(row);
   }
 
-  console.log(field); 
-
   return (
-    <div className="field" style={{display: 'grid', gridTemplateColumns: `repeat(${props.size}, 25px)`, gridTemplateRows: `repeat(${props.size}, 25px)`}}>
+    <div className="field"
+      style={{ display: 'grid', gridTemplateColumns: `repeat(${props.fieldSize}, ${props.tileSize}px)`, gridTemplateRows: `repeat(${props.fieldSize}, ${props.tileSize}px)` }}>
       {
         field
       }
@@ -30,9 +30,9 @@ function Field(props: { size: number }) {
   )
 }
 
-function Tile() {
+function Tile(props: {isEven: boolean}) {
   return (
-    <div className="tile">
+    <div className={`tile ${props.isEven ? 'even' : 'odd'}`}>
 
     </div>
   )
