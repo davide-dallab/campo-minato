@@ -1,13 +1,50 @@
-.tile {
-  width: 100%;
-  height: 100%;
-  background-color: green;
+.field {
+  width: 50%;
+  margin: auto;
+  user-select: none;
 }
 
 .tile.even {
-  background-color: greenyellow;
+  background-color: #AAD751;
 }
 
-.row:nth-child(2n+1) > .tile:nth-child(2n),  .row:nth-child(2n) > .tile:nth-child(2n+1){
-  background-color: greenyellow;
+.tile.even:hover {
+  background-color: #CCF862;
+}
+
+.tile.odd {
+  background-color: #A2D149;
+}
+
+.tile.odd:hover {
+  background-color: #C4F36B;
+}
+
+.tile.discovered.odd {
+  background-color: #D7B899;
+}
+
+.tile.discovered.odd:hover {
+  background-color: #E8C9AA;
+}
+
+.tile.discovered.even {
+  background-color: #DEBD9C;
+}
+
+.tile.discovered.even:hover {
+  background-color: #EFCEAD;
+}
+
+.tile>img{
+  width: 100%;
+  height: 100%;
+}
+
+.tile{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  cursor: pointer;
 }
