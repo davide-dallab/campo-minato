@@ -5,7 +5,7 @@ function App() {
   return (
     <div className="App">
       <h1>Campo minato</h1>
-      <Field fieldSize={{width: 15, height: 10}} bombCount={60} />
+      <Field fieldSize={{width: 20, height: 14}} bombCount={40} />
     </div>
   );
 }
@@ -62,6 +62,12 @@ function Field(props: {
     } else {
       if (tile.isBomb) {
         setGameState("lost");
+        for (let y = 0; y < props.fieldSize.height; y++) {
+          for (let x = 0; x < props.fieldSize.width; x++) {
+            const tile = field[y][x];
+            if(tile.isBomb) tile.discovered = true;
+          }
+        }
       }
       else{
         if (tile.bombCount === 0){
@@ -95,10 +101,14 @@ function Field(props: {
     tile.discovered = true;
     tile.flag = false;
     buffer.push(JSON.stringify(tilePos));
+    checkAndExpose(tilePos.x - 1, tilePos.y - 1);
     checkAndExpose(tilePos.x - 1, tilePos.y);
+    checkAndExpose(tilePos.x - 1, tilePos.y + 1);
     checkAndExpose(tilePos.x, tilePos.y - 1);
     checkAndExpose(tilePos.x, tilePos.y + 1);
+    checkAndExpose(tilePos.x + 1, tilePos.y - 1);
     checkAndExpose(tilePos.x + 1, tilePos.y);
+    checkAndExpose(tilePos.x + 1, tilePos.y + 1);
 
     function checkAndExpose(x: number, y: number) {
       if(y < 0 || y >= field.length || x < 0 || x >= field[y].length)
@@ -107,7 +117,8 @@ function Field(props: {
       const tile = field[y][x];
       
       if (buffer.indexOf(JSON.stringify({ x, y })) === -1 && !tile.isBomb) {
-        exposeEmptyTile(field[y][x], buffer);
+        if(tile.bombCount > 0) tile.discovered = true;
+        else exposeEmptyTile(field[y][x], buffer);
       }
     }
   }
@@ -234,8 +245,8 @@ function Tile(props: { tile: Tile; onRightClick: ClickCallBack; onLeftClick: Cli
   const display = getCurrentDisplay();
 
   function getCurrentDisplay() {
-    if (tile.discovered && tile.isBomb) return "💣";
-    if (tile.flag) return "🚩";
+    if (tile.discovered && tile.isBomb) return '💣';
+    if (tile.flag) return '🚩';
     if (!tile.discovered) return null;
     return tile.bombCount || '';
   }

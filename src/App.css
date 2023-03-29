@@ -2,6 +2,8 @@
   width: 50%;
   margin: auto;
   user-select: none;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
 .tile.even {
@@ -47,6 +49,6 @@
   justify-content: center;
   aspect-ratio: 1 / 1;
   cursor: pointer;
-  font-size: 150%;
+  font-size: 30px;
   font-weight: bold;
 }
