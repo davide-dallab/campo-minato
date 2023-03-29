@@ -1,13 +1,11 @@
 import { useState } from "react";
 import "./App.css";
-import bomb from "./assets/bomb.png";
-import flag from "./assets/flag.png";
 
 function App() {
   return (
     <div className="App">
       <h1>Campo minato</h1>
-      <Field fieldSize={{width: 15, height: 10}} bombCount={40} />
+      <Field fieldSize={{width: 15, height: 10}} bombCount={60} />
     </div>
   );
 }
@@ -229,6 +227,8 @@ function Field(props: {
 
 type ClickCallBack = (tile: Tile) => void;
 
+const tileColors = ['#fff', '#48f', '#8b4', '#f44', '#b4b', '#fd2', '#2be', '#fff', '#000'];
+
 function Tile(props: { tile: Tile; onRightClick: ClickCallBack; onLeftClick: ClickCallBack }) {
   const { tile, onRightClick, onLeftClick } = props;
   const display = getCurrentDisplay();
@@ -237,11 +237,11 @@ function Tile(props: { tile: Tile; onRightClick: ClickCallBack; onLeftClick: Cli
     if (tile.discovered && tile.isBomb) return "💣";
     if (tile.flag) return "🚩";
     if (!tile.discovered) return null;
-    return <span>{tile.bombCount || ''}</span>;
+    return tile.bombCount || '';
   }
   
   return (
-    <div
+    <span
       onClick={() => onLeftClick(tile)}
       onContextMenu={evt => {
         evt.preventDefault();
@@ -249,10 +249,10 @@ function Tile(props: { tile: Tile; onRightClick: ClickCallBack; onLeftClick: Cli
       }}
       className={`tile ${
         (tile.position.x + tile.position.y) % 2 === 0 ? "even" : "odd"
-      } ${tile.discovered && "discovered"}`}
+      } ${tile.discovered && "discovered"}`} style={{color: tileColors[tile.bombCount]}}
     >
       {display}
-    </div>
+    </span>
   );
 }
 
