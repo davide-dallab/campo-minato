@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 
 function App() {
+  let playingTime = 0;
+
   return (
     <div className="App">
       <h1>Campo minato</h1>
-      <Field fieldSize={{width: 20, height: 14}} bombCount={40} />
+      <Timer precision={.01} onTimerUpdate={time => playingTime = time} stop={false}/>
+      <Field fieldSize={{ width: 20, height: 14 }} bombCount={40} />
     </div>
   );
 }
@@ -26,11 +29,16 @@ type Tile = {
 type GameState = "covered" | "playing" | "won" | "lost";
 
 function Field(props: {
-  fieldSize: {width: number, height: number};
+  fieldSize: { width: number; height: number };
   bombCount: number;
+  onGameStateChange?: (state: GameState) => void;
 }) {
   const [gameState, setGameState] = useState<GameState>("covered");
   const [field, setField] = useState<Tile[][]>(createStartingField());
+
+  if(props.onGameStateChange){
+    useEffect(() => props.onGameStateChange?.(gameState), [gameState]);
+  }
 
   function createStartingField() {
     const startingField = [];
@@ -42,7 +50,7 @@ function Field(props: {
           discovered: false,
           isBomb: false,
           flag: false,
-          bombCount: 0
+          bombCount: 0,
         };
         row.push(currentTile);
       }
@@ -53,7 +61,7 @@ function Field(props: {
   }
 
   function handleLeftClick(tile: Tile) {
-    if(tile.flag) return;
+    if (tile.flag) return;
 
     if (gameState === "covered") {
       setGameState("playing");
@@ -65,16 +73,15 @@ function Field(props: {
         for (let y = 0; y < props.fieldSize.height; y++) {
           for (let x = 0; x < props.fieldSize.width; x++) {
             const tile = field[y][x];
-            if(tile.isBomb) tile.discovered = true;
+            if (tile.isBomb) tile.discovered = true;
           }
         }
-      }
-      else{
-        if (tile.bombCount === 0){
+      } else {
+        if (tile.bombCount === 0) {
           exposeEmptyTile(tile);
         }
 
-        if(checkWin()){
+        if (checkWin()) {
           setGameState("won");
         }
       }
@@ -89,13 +96,13 @@ function Field(props: {
     for (let y = 0; y < props.fieldSize.height; y++) {
       for (let x = 0; x < props.fieldSize.width; x++) {
         const tile = field[y][x];
-        if(!tile.isBomb && !tile.discovered) return false;
+        if (!tile.isBomb && !tile.discovered) return false;
       }
     }
 
     return true;
   }
-  
+
   function exposeEmptyTile(tile: Tile, buffer: string[] = []) {
     const tilePos = tile.position;
     tile.discovered = true;
@@ -111,13 +118,12 @@ function Field(props: {
     checkAndExpose(tilePos.x + 1, tilePos.y + 1);
 
     function checkAndExpose(x: number, y: number) {
-      if(y < 0 || y >= field.length || x < 0 || x >= field[y].length)
-        return;
-      
+      if (y < 0 || y >= field.length || x < 0 || x >= field[y].length) return;
+
       const tile = field[y][x];
-      
+
       if (buffer.indexOf(JSON.stringify({ x, y })) === -1 && !tile.isBomb) {
-        if(tile.bombCount > 0) tile.discovered = true;
+        if (tile.bombCount > 0) tile.discovered = true;
         else exposeEmptyTile(field[y][x], buffer);
       }
     }
@@ -130,7 +136,10 @@ function Field(props: {
 
         const tile = field[position.y][position.x];
         if (
-          !(Math.abs(position.x - exclude.x) <= 1 && Math.abs(position.y - exclude.y) <= 1) &&
+          !(
+            Math.abs(position.x - exclude.x) <= 1 &&
+            Math.abs(position.y - exclude.y) <= 1
+          ) &&
           !tile.isBomb
         ) {
           tile.isBomb = true;
@@ -142,7 +151,7 @@ function Field(props: {
     for (let y = 0; y < props.fieldSize.height; y++) {
       for (let x = 0; x < props.fieldSize.width; x++) {
         const tile = field[y][x];
-        tile.bombCount = countBombsNear({x, y});
+        tile.bombCount = countBombsNear({ x, y });
       }
     }
   }
@@ -150,29 +159,21 @@ function Field(props: {
   function countBombsNear(position: Position) {
     let bombCount = 0;
 
-    if (checkBomb({ x: position.x - 1, y: position.y - 1}))
-      bombCount++;
+    if (checkBomb({ x: position.x - 1, y: position.y - 1 })) bombCount++;
 
-    if (checkBomb({ x: position.x - 1, y: position.y}))
-      bombCount++;
-    
-    if (checkBomb({ x: position.x - 1, y: position.y + 1 }))
-      bombCount++;
-    
-    if (checkBomb({ x: position.x, y: position.y - 1 }))
-      bombCount++;
-    
-    if (checkBomb({ x: position.x, y: position.y + 1 }))
-      bombCount++;
-    
-    if (checkBomb({ x: position.x + 1, y: position.y - 1 }))
-      bombCount++;
-    
-    if (checkBomb({ x: position.x + 1, y: position.y}))
-      bombCount++;
-    
-    if (checkBomb({ x: position.x + 1, y: position.y + 1 }))
-      bombCount++;
+    if (checkBomb({ x: position.x - 1, y: position.y })) bombCount++;
+
+    if (checkBomb({ x: position.x - 1, y: position.y + 1 })) bombCount++;
+
+    if (checkBomb({ x: position.x, y: position.y - 1 })) bombCount++;
+
+    if (checkBomb({ x: position.x, y: position.y + 1 })) bombCount++;
+
+    if (checkBomb({ x: position.x + 1, y: position.y - 1 })) bombCount++;
+
+    if (checkBomb({ x: position.x + 1, y: position.y })) bombCount++;
+
+    if (checkBomb({ x: position.x + 1, y: position.y + 1 })) bombCount++;
 
     return bombCount;
   }
@@ -185,27 +186,30 @@ function Field(props: {
       position.x >= field[position.y].length
     )
       return false;
-    
+
     return field[position.y][position.x].isBomb;
   }
 
   function randomPosition(): Position {
-    return { x: randomCoordinate(props.fieldSize.width), y: randomCoordinate(props.fieldSize.height) };
+    return {
+      x: randomCoordinate(props.fieldSize.width),
+      y: randomCoordinate(props.fieldSize.height),
+    };
   }
 
   function randomCoordinate(maxValue: number) {
     return Math.floor(Math.random() * maxValue);
   }
 
-  function handleRightClick(tile: Tile){
-    if(tile.discovered) return;
-    
+  function handleRightClick(tile: Tile) {
+    if (tile.discovered) return;
+
     tile.flag = !tile.flag;
 
     rerender();
   }
 
-  function rerender(){
+  function rerender() {
     setField((oldField) => [...oldField]);
   }
 
@@ -216,7 +220,7 @@ function Field(props: {
         style={{
           display: "grid",
           gridTemplateColumns: `repeat(${props.fieldSize.width}, 1fr)`,
-          gridTemplateRows: `repeat(${props.fieldSize.height}, 1fr)`
+          gridTemplateRows: `repeat(${props.fieldSize.height}, 1fr)`,
         }}
       >
         {field.map((row) =>
@@ -238,33 +242,83 @@ function Field(props: {
 
 type ClickCallBack = (tile: Tile) => void;
 
-const tileColors = ['#fff', '#48f', '#8b4', '#f44', '#b4b', '#fd2', '#2be', '#fff', '#000'];
+const tileColors = [
+  "#fff",
+  "#48f",
+  "#8b4",
+  "#f44",
+  "#b4b",
+  "#fd2",
+  "#2be",
+  "#fff",
+  "#000",
+];
 
-function Tile(props: { tile: Tile; onRightClick: ClickCallBack; onLeftClick: ClickCallBack }) {
+function Tile(props: {
+  tile: Tile;
+  onRightClick: ClickCallBack;
+  onLeftClick: ClickCallBack;
+}) {
   const { tile, onRightClick, onLeftClick } = props;
   const display = getCurrentDisplay();
 
   function getCurrentDisplay() {
-    if (tile.discovered && tile.isBomb) return '💣';
-    if (tile.flag) return '🚩';
+    if (tile.discovered && tile.isBomb) return "💣";
+    if (tile.flag) return "🚩";
     if (!tile.discovered) return null;
-    return tile.bombCount || '';
+    return tile.bombCount || "";
   }
-  
+
   return (
     <span
       onClick={() => onLeftClick(tile)}
-      onContextMenu={evt => {
+      onContextMenu={(evt) => {
         evt.preventDefault();
         onRightClick(tile);
       }}
       className={`tile ${
         (tile.position.x + tile.position.y) % 2 === 0 ? "even" : "odd"
-      } ${tile.discovered && "discovered"}`} style={{color: tileColors[tile.bombCount]}}
+      } ${tile.discovered && "discovered"}`}
+      style={{ color: tileColors[tile.bombCount] }}
     >
       {display}
     </span>
   );
+}
+
+function Timer(props: { precision: number, onTimerUpdate?: (number: number) => void, stop: boolean }) {
+  const [time, setTime] = useState(0);
+
+  useEffect(() => {
+    const updater = setInterval(() => {
+      if(!props.stop)
+        setTime((oldTime) => oldTime + props.precision);
+    }, 1000 * props.precision);
+
+    return () => clearInterval(updater);
+  }, []);
+
+  if(props.onTimerUpdate){
+    useEffect(() => {props.onTimerUpdate?.(time)}, [time]);
+  }
+
+  function formattedTime() {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    const remainder = (time - seconds).toFixed(Math.log10(1 / props.precision));
+
+    function formatNumber(n: number) {
+      return n < 10 ? `0${n}` : `${n}`;
+    }
+
+    return props.precision >= 1
+      ? `${formatNumber(minutes)}:${formatNumber(seconds)}`
+      : `${formatNumber(minutes)}:${formatNumber(seconds)}.${remainder
+          .toString()
+          .substring(2)}`;
+  }
+
+  return <span className="timer">{formattedTime()}</span>;
 }
 
 export default App;
