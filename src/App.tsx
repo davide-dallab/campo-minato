@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import "./App.css";
+import Timer from "./comonents/Timer";
 
 function App() {
   let playingTime = 0;
+  const [gameState, setGameState] = useState<GameState>("covered");
 
   return (
     <div className="App">
       <h1>Campo minato</h1>
-      <Timer precision={.01} onTimerUpdate={time => playingTime = time} stop={false}/>
-      <Field fieldSize={{ width: 20, height: 14 }} bombCount={40} />
+      <Timer precision={.1} onTimerUpdate={time => playingTime = time} running={gameState == "playing"}/>
+      <Field fieldSize={{ width: 20, height: 16 }} bombCount={40} onGameStateChange={setGameState}/>
     </div>
   );
 }
@@ -63,6 +65,8 @@ function Field(props: {
   function handleLeftClick(tile: Tile) {
     if (tile.flag) return;
 
+    tile.discovered = true;
+
     if (gameState === "covered") {
       setGameState("playing");
       plantMines(tile.position);
@@ -86,8 +90,6 @@ function Field(props: {
         }
       }
     }
-
-    tile.discovered = true;
 
     rerender();
   }
@@ -206,6 +208,10 @@ function Field(props: {
 
     tile.flag = !tile.flag;
 
+    if (checkWin()) {
+      setGameState("won");
+    }
+
     rerender();
   }
 
@@ -285,40 +291,5 @@ function Tile(props: {
     </span>
   );
 }
-
-function Timer(props: { precision: number, onTimerUpdate?: (number: number) => void, stop: boolean }) {
-  const [time, setTime] = useState(0);
-
-  useEffect(() => {
-    const updater = setInterval(() => {
-      if(!props.stop)
-        setTime((oldTime) => oldTime + props.precision);
-    }, 1000 * props.precision);
-
-    return () => clearInterval(updater);
-  }, []);
-
-  if(props.onTimerUpdate){
-    useEffect(() => {props.onTimerUpdate?.(time)}, [time]);
-  }
-
-  function formattedTime() {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    const remainder = (time - seconds).toFixed(Math.log10(1 / props.precision));
-
-    function formatNumber(n: number) {
-      return n < 10 ? `0${n}` : `${n}`;
-    }
-
-    return props.precision >= 1
-      ? `${formatNumber(minutes)}:${formatNumber(seconds)}`
-      : `${formatNumber(minutes)}:${formatNumber(seconds)}.${remainder
-          .toString()
-          .substring(2)}`;
-  }
-
-  return <span className="timer">{formattedTime()}</span>;
-}
-
+  
 export default App;
